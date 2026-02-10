@@ -2,28 +2,29 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProductTransactionResource\Pages;
-use App\Filament\Resources\ProductTransactionResource\RelationManagers;
-use App\Models\ProductTransaction;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\FileUpload;
+use Illuminate\Support\Carbon;
+use Filament\Resources\Resource;
+use App\Models\ProductTransaction;
+use Filament\Tables\Filters\Filter;
+use function Laravel\Prompts\select;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
-use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Filters\TernaryFilter;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 
 
-use function Laravel\Prompts\select;
+use App\Filament\Resources\ProductTransactionResource\Pages;
+use App\Filament\Resources\ProductTransactionResource\RelationManagers;
 
 class ProductTransactionResource extends Resource
 {
@@ -113,29 +114,34 @@ class ProductTransactionResource extends Resource
                     ->label('Status')
                     ->formatStateUsing(fn($state) => $state ? 'Selesai' : 'Belum' )
             ])
+            // ->filters([
+            //     TernaryFilter::make('is_paid')
+            //         ->label('Status Pembayaran')
+            //         ->trueLabel('Selesai')
+            //         ->falseLabel('Belum Dibayar'),
+
             ->filters([
-                TernaryFilter::make('is_paid')
-                    ->label('Status Pembayaran')
-                    ->trueLabel('Selesai')
-                    ->falseLabel('Belum Dibayar'),
-
-    // 🔹 Filter Tanggal Transaksi
                 Filter::make('created_at')
-                    ->label('Tanggal Transaksi')
                     ->form([
-                        DatePicker::make('from')->label('Dari'),
-                        DatePicker::make('until')->label('Sampai'),
+                        DatePicker::make('from'),
+                        DatePicker::make('until')
                     ])
-                    ->query(function (Builder $query, array $data) {
+                    ->query(function(Builder $query, array $data):Builder{
                         return $query
-                            ->when($data['from'], fn ($q) =>
-                                $q->whereDate('created_at', '>=', $data['from']))
-                            ->when($data['until'], fn ($q) =>
-                                $q->whereDate('created_at', '<=', $data['until']));
-                    }),
-
-])
-
+                            ->when($data['from'],fn($q,$date)=>$q->whereDate('created_at','>=',$date))
+                            ->when($data['until'],fn($q,$date)=>$q->whereDate('created_at','<=',$date));
+                    })
+                    ->indicateUsing(function(array $data) : array{
+                        $indicators= [];
+                        if ($data['from'] ?? null){
+                            $indicators['from']= "transaction from" . Carbon::parse($data['from'])->toFormattedDateString();
+                        }
+                        if ($data['until'] ?? null){
+                            $indicators['until']= "transaction until" . Carbon::parse($data['until'])->toFormattedDateString();
+                        }
+                        return $indicators;
+                    })
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
