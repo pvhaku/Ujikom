@@ -64,6 +64,8 @@ class ProdukResource extends Resource
                                 ->required(),
                             Forms\Components\Select::make('is_popular')
                                 ->label('Is Popular')
+                                ->required()
+                                ->default(false)
                                 ->options([
                                     '1' => 'Ganteng',
                                     '0' => 'Lumayan',

@@ -37,10 +37,10 @@ class ListProductTransactions extends ListRecords
                 })
         ];
     }
-    protected function getHeaderWidgets(): array
-    {
-    return [
-        TransactionStats::class,
-    ];
-}
+//     protected function getHeaderWidgets(): array
+//     {
+//     return [
+//         TransactionStats::class,
+//     ];
+// }
 }

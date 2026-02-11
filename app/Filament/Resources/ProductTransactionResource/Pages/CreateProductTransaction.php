@@ -13,8 +13,14 @@ class CreateProductTransaction extends CreateRecord
 {
     protected static string $resource = ProductTransactionResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+
         DB::beginTransaction();
         $produk = Produk::lockForUpdate()->find($data['produk_id']);
         if (! $produk) {
